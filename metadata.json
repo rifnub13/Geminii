@@ -1,0 +1,5 @@
+{
+  "name": "Manajemen Tagihan Pelanggan Wifi",
+  "description": "A web application to manage and track monthly Wi-Fi subscription payments for customers. It allows viewing customer data, tracking payment status for each month, adding new customers, and editing existing ones.",
+  "requestFramePermissions": []
+}

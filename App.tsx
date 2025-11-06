@@ -1,0 +1,599 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import type { Customer, Bill, BillStatus } from './types';
+import AddEditCustomerModal from './components/AddEditCustomerModal';
+import ConfirmationModal from './components/ConfirmationModal';
+import { UserPlusIcon, SearchIcon, UsersIcon, DocumentCsvIcon, CheckCircleIcon, ExclamationCircleIcon, ChevronLeftIcon, ChevronRightIcon, ArrowsUpDownIcon, PencilIcon, TrashIcon, SunIcon, MoonIcon } from './components/Icons';
+
+const CSV_DATA = `NO,NAMA USER,JATUH TEMPO,HARGA
+1,ABID,20,"100,000"
+2,ADI SRI UTOMO,27,"110,000"
+3,AFIDA,10,"125,000"
+4,AGAM,10,"100,000"
+5,AGIL DWI,30,"110,000"
+6,AGUNG SANTOSO,20,"125,000"
+7,AHMAD RICKY,20,"110,000"
+8,AHMAD RANGGA SATYA,5,"110,000"
+9,ABD ROHIM,10,"100,000"
+10,ALUL,10,"100,000"
+11,AMEL,27,"100,000"
+12,AMROZI,5,"100,000"
+13,ANDRE,20,"100,000"
+14,ANIS MARSELA,29,"100,000"
+15,BAMBANG BARU LOR,10,"160,000"
+16,BANDI,5,"100,000"
+17,BANTAL BALAP,5,"150,000"
+18,BASUKI,15,"100,000"
+19,BELLA,20,"125,000"
+20,BUSREK,27,"100,000"
+21,CHAHYA SHAE QITTI,27,"110,000"
+22,CHIKA,15,"100,000"
+23,CHUSNUL KOTIMAH,15,"120,000"
+24,DANIS,20,"100,000"
+25,DARGOMBES,20,"125,000"
+26,DEWI,20,"150,000"
+27,DWI HADI PRANOTO,10,"100,000"
+28,ERMI WIJAYANTI,27,"110,000"
+29,FAJAR,20,"125,000"
+30,FATKUR ROHMAN,20,"100,000"
+31,FAUZI,30,"110,000"
+32,FELISA,25,"100,000"
+33,FEBY SETYA PRAMESWARI,15,"100,000"
+34,FERRI,28,"100,000"
+35,KHOIRUL ANAM,15,"110,000"
+36,GENDUK DWI LESTARI,15,"100,000"
+37,GENDUK SITI FATIMAH,10,"100,000"
+38,GRIYA LAILI,28,"100,000"
+39,HERY SISWANTO,27,"100,000"
+40,IKA,20,"100,000"
+41,IMAM SYAFI'I,20,"100,000"
+42,IMRON BRANGKAL,15,"110,000"
+43,IRMA PURWANDA,27,"110,000"
+44,IRMAWATI,10,"200,000"
+45,ISDIANA,10,"100,000"
+46,ISMAIL,20,"100,000"
+47,ISMIYANTI OKTAVIA,5,"110,000"
+48,ISROTUL JANAH,20,"110,000"
+49,JAKIRUL,28,"100,000"
+50,JESIKA TRI NURFADILA,27,"110,000"
+51,JOKO PUJIYANTO,20,"100,000"
+52,JUMANI,25,"100,000"
+53,JUNAIDI,15,"100,000"
+54,JUPRI,20,"100,000"
+55,JUPRI/ADIT,5,"100,000"
+56,KADER,27,"100,000"
+57,KANDANG MAS SES,27,"110,000"
+58,KANDANG/BAGUS ROMADHONI,20,"200,000"
+59,KASMAN,27,"100,000"
+60,KHOIRUN NISAK,10,"100,000"
+61,LAILI,20,"125,000"
+62,LEK LUNG,10,"100,000"
+63,LEK YAR,5,"100,000"
+64,LULUK MARDIANAH,27,"110,000"
+65,M. ABD . WAHID,20,"125,000"
+66,M. AINUL YAQIN,20,"100,000"
+67,MAHMUD ASARI,27,"100,000"
+68,MAKDUM,10,"100,000"
+69,MARIYATUN,10,"110,000"
+70,MARLAN,20,"125,000"
+71,MASDUKI,20,"110,000"
+72,MASKUN,27,"110,000"
+73,MASTI'AH,20,"125,000"
+74,MBAK EVI BARULOR,27,"110,000"
+75,MBAH YON,10,"100,000"
+76,MERDEKA DUNGDANG,5,"100,000"
+77,MIA MIU,5,"100,000"
+78,MIA ROSAYLINA,20,"100,000"
+79,MICHAYLA,20,"100,000"
+80,MIFTAHUL SHOLIHIN,5,"120,000"
+81,MILA,10,"100,000"
+82,MIRTA ROMADHONI,5,"100,000"
+83,MIZAN,20,"110,000"
+84,MOHAMMAD ALIM,20,"110,000"
+85,MOHAMMAD FAHMI,27,"125,000"
+86,MUHAMMAD IMRON,20,"165,000"
+87,MUHAMMAD KHAMIM,20,"100,000"
+88,MUHAMMAD ZUBAIDIL AFIF,30,"100,000"
+89,MUKLASIN,20,"100,000"
+90,MUKOIRI,20,"100,000"
+91,MUNAJI,15,"100,000"
+92,MUSLIM,20,"100,000"
+93,MURSI,5,"110,000"
+94,MUSTA'IN,10,"110,000"
+95,NANATIN,10,"125,000"
+96,NASIKH,15,"110,000"
+97,NAWANG,5,"100,000"
+98,NELIDA,10,"100,000"
+99,NIA KARISMA,20,"110,000"
+100,NURKAMID,10,"100,000"
+101,NURYADI,10,"150,000"
+102,OKIK,10,"100,000"
+103,PAK ANI,10,"100,000"
+104,PAK AYU DUNGSARI,28,"100,000"
+105,PAK DIKA DUNGSARI,20,"100,000"
+106,PISTA ISTIANA,20,"110,000"
+107,PRAYITNO,20,"110,000"
+108,RADHA,27,"125,000"
+109,RENDI PRAMANTA,27,"125,000"
+110,REY,20,"200,000"
+111,RIKAYATI,10,"100,000"
+112,RIKI TANJUNG,10,"100,000"
+113,RISMA / LEK KUR,5,"100,000"
+114,RIZAL,27,"100,000"
+115,RIZKA ROMADHONI,5,"100,000"
+116,RIZQY,5,"100,000"
+117,RUDI DUNGSARI,30,"100,000"
+118,RUKO KEBAB,25,"120,000"
+119,SAHLAN,20,"110,000"
+120,SAKANUL,27,"100,000"
+121,SAMIATUN,20,"110,000"
+122,SAMSUL HUDA,15,"100,000"
+123,SARBINI AMIN,20,"125,000"
+124,SATRIA SURYA MAULANA,20,"110,000"
+125,SDN KEPOH II,27,"300,000"
+126,SEPTRY BINTI NADIFA,27,"125,000"
+127,SHOLIHIN,10,"110,000"
+128,SITI AMINAH,20,"100,000"
+129,SITI ANDAYANI,10,"100,000"
+130,SITI BADRIAH,20,"100,000"
+131,SITI BARULOR,10,"110,000"
+132,SITI FATMIATUN,27,"110,000"
+133,SITI HARMONIS,20,"100,000"
+134,SITI KHABIB BATUS SHOLIKAH,5,"100,000"
+135,SITI NURUL,20,"100,000"
+136,SUCI NUR KHOIRIYAH,27,"100,000"
+137,AURA,10,"100,000"
+138,SUNARTI,10,"110,000"
+139,SUTRISNO / JAEMO,15,"150,000"
+140,SUSILOWATI,20,"100,000"
+141,SUSILAWATI,5,"110,000"
+142,TARNO,15,"100,000"
+143,BAKSO PUTRI,20,"110,000"
+144,THE KOTA,20,"100,000"
+145,TOKO ALIFIA,20,"110,000"
+146,TOTOK,27,"100,000"
+147,UD DIMAS JAYA,20,"150,000"
+148,UMI FADHILA,27,"100,000"
+149,WIJANARTO ADE IRAWAN,20,"100,000"
+150,YOGIK ADI SAPUTRA,5,"160,000"
+151,YULIA EKA AYU LESTARI,27,"100,000"
+152,YUSUF,27,"100,000"
+153,ZAINUL ARIFIN,15,"100,000"
+154,ZUANA KUSUMA DEWI,10,"100,000"
+155,ZUHRON,27,"125,000"
+156,WARJITO,10,"110,000"
+157,ALIMIN,5,"110,000"
+158,ZENI IRAWAN,15,"100,000"
+159,NGATEMI,20,"110,000"
+160,AMANAH,15,"110,000"
+161,SELA AULIA AGUSTIN,25,"110,000"
+162,HASYIM AS'ARI,27,"100,000"
+163,SITI NUR NAFI'AH,27,"100,000"
+164,GUNARIYADI,29,"100,000"
+165,VITA VIBRIYANTI,5,"110,000"
+166,MUSLIMIN,20,"100,000"
+167,KUSWANDI,15,"120,000"
+168,SITI ANIS MAHMUDAH,27,"160,000"
+169,MELYA DIAN NURAINI,27,"120,000"
+170,RIDHO,10,"120,000"
+171,MUSTHOPA,27,"110,000"
+172,ST ROHMATUL AWALIYA,30,"100,000"
+173,YOGA,1,"100,000"
+174,PUTRI,10,"100,000"
+175,SETYO BUDI,10,"110,000"
+176,SARI MAKMUR GROUP,10,"160,000"
+177,GUDANG SARI MAKMUR TOBACCO,10,"120,000"
+178,BOLO TANI,20,"150,000"
+179,HAMIM,5,"100,000"
+180,MANSYUR,5,"110,000"
+181,SYUKUR,5,"120,000"
+182,ARUMI,5,"120,000"
+183,ARIK CAHYONO,5,"120,000"
+184,GOZALI,5,"120,000"
+185,M. AGUS ALI MANSYUR,10,"120,000"
+186,DWI SATYA ANGGRAINI,20,"160,000"
+187,MUHAMMAD ALFIAN AUFANI,25,"120,000"
+188,M. TABIT,15,"120,000"
+189,SRI WAHYUNI,27,"120,000"
+190,YATONO,27,"120,000"
+191,M HENDRIK PURNIAWAN,5,"120,000"
+192,CANDRA KIRANA PUTRA P.,5,"120,000"
+193,LUSI IZZA ALVIANA,5,"120,000"
+194,SUGITO,5,"120,000"
+`;
+const LOCAL_STORAGE_KEY = 'wifiBillingAppCustomers';
+
+type SortDirection = 'ascending' | 'descending';
+type SortKey = 'name' | 'id' | 'baseBill';
+type GroupingKey = 'none' | 'dueDateDay';
+
+interface SortConfig {
+  key: SortKey;
+  direction: SortDirection;
+}
+
+const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+const generateBills = (dueDateDay: number, baseBill: number): Bill[] => {
+    const bills: Bill[] = [];
+    const year = 2025; // Static year as per design context
+    for (let month = 0; month < 12; month++) {
+      bills.push({
+        paymentMonth: `${year}-${String(month + 1).padStart(2, '0')}`,
+        status: 'BELUM LUNAS',
+        paymentDate: null,
+        dueDate: `${dueDateDay}/${month + 1}/${year}`,
+        baseBill: baseBill,
+      });
+    }
+    return bills;
+};
+
+const parseCSV = (csvText: string): Customer[] => {
+  const lines = csvText.trim().split('\n').slice(2); // Skip first two header lines
+  return lines.map(line => {
+    const columns = line.split(',').map(field => field.replace(/"/g, '').trim());
+    if(columns.length < 4) return null;
+    const id = parseInt(columns[0], 10);
+    const name = columns[1];
+    const dueDateDay = parseInt(columns[2], 10);
+    const baseBill = parseInt((columns[3] || '0').replace(/,/g, ''), 10);
+    if (isNaN(id) || !name || isNaN(dueDateDay) || isNaN(baseBill)) return null;
+    return { id, name, baseBill, dueDateDay, whatsappNumber: '', bills: generateBills(dueDateDay, baseBill) };
+  }).filter((c): c is Customer => c !== null);
+};
+
+const formatCurrency = (amount: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+
+const App: React.FC = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme') as 'light' | 'dark';
+    }
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  });
+
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedData) {
+            return JSON.parse(savedData) as Customer[];
+        }
+    } catch (e) {
+        console.error("Could not load customers from local storage", e);
+    }
+    return parseCSV(CSV_DATA);
+  });
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+  const [viewDate, setViewDate] = useState(new Date(2025, 10, 1)); // Default to Nov 2025
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'ascending' });
+  const [groupingKey, setGroupingKey] = useState<GroupingKey>('none');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+  };
+
+  useEffect(() => {
+    try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(customers));
+    } catch (e) {
+        console.error("Could not save customers to local storage", e);
+    }
+  }, [customers]);
+
+  const handleOpenModal = (customer: Customer | null = null) => {
+    setEditingCustomer(customer);
+    setIsModalOpen(true);
+  };
+  
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  const handleFormSubmit = (customerData: Omit<Customer, 'id' | 'bills'>, id?: number) => {
+    if (id) {
+      setCustomers(customers.map(c => 
+        c.id === id ? { ...c, ...customerData, bills: generateBills(customerData.dueDateDay, customerData.baseBill) } : c
+      ));
+    } else {
+      const newId = Math.max(0, ...customers.map(c => c.id)) + 1;
+      setCustomers([...customers, { id: newId, ...customerData, bills: generateBills(customerData.dueDateDay, customerData.baseBill) }]);
+    }
+    handleCloseModal();
+  };
+
+  const handleDeleteCustomer = () => {
+    if (customerToDelete) {
+      setCustomers(customers.filter(c => c.id !== customerToDelete.id));
+      setCustomerToDelete(null); 
+    }
+  };
+  
+  const handleToggleBillStatus = (customerId: number, paymentMonth: string) => {
+    setCustomers(customers.map(c => 
+      c.id === customerId 
+        ? { ...c, bills: c.bills.map(b => 
+            b.paymentMonth === paymentMonth 
+              ? { ...b, status: b.status === 'LUNAS' ? 'BELUM LUNAS' : 'LUNAS', paymentDate: b.status !== 'LUNAS' ? new Date().toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : null }
+              : b
+          )} 
+        : c
+    ));
+  };
+  
+  const handleSortKeyChange = (key: SortKey) => setSortConfig(prev => ({ ...prev, key }));
+  const toggleSortDirection = () => setSortConfig(prev => ({ ...prev, direction: prev.direction === 'ascending' ? 'descending' : 'ascending' }));
+
+  const handleMonthChange = (offset: number) => {
+      setViewDate(current => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+  };
+
+  const monthlyStats = useMemo(() => {
+      const monthStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}`;
+      return customers.reduce((acc, customer) => {
+          const bill = customer.bills.find(b => b.paymentMonth === monthStr);
+          if (bill) {
+              if (bill.status === 'LUNAS') {
+                  acc.totalLunas += bill.baseBill;
+                  acc.pelangganLunas += 1;
+              } else {
+                  acc.totalTerutang += bill.baseBill;
+                  acc.pelangganTerutang += 1;
+              }
+          }
+          return acc;
+      }, { totalLunas: 0, totalTerutang: 0, pelangganLunas: 0, pelangganTerutang: 0 });
+  }, [customers, viewDate]);
+
+  const sortedAndFilteredCustomers = useMemo(() => {
+    return [...customers]
+      .filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.id.toString().includes(searchTerm))
+      .sort((a, b) => {
+        const aVal = a[sortConfig.key];
+        const bVal = b[sortConfig.key];
+        const order = sortConfig.direction === 'ascending' ? 1 : -1;
+        if (typeof aVal === 'string' && typeof bVal === 'string') return aVal.localeCompare(bVal) * order;
+        if (aVal < bVal) return -1 * order;
+        if (aVal > bVal) return 1 * order;
+        return 0;
+      });
+  }, [customers, searchTerm, sortConfig]);
+  
+  const handleExportCSV = () => {
+    const monthStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}`;
+    const monthName = monthNames[viewDate.getMonth()];
+    const year = viewDate.getFullYear();
+
+    const headers = ['ID Pelanggan', 'Nama', 'Tagihan Dasar', `Status (${monthName} ${year})`, `Tanggal Bayar (${monthName} ${year})`];
+    
+    const rows = sortedAndFilteredCustomers.map(customer => {
+        const bill = customer.bills.find(b => b.paymentMonth === monthStr);
+        const status = bill ? bill.status : 'TIDAK ADA TAGIHAN';
+        const paymentDate = bill && bill.paymentDate ? bill.paymentDate : '';
+
+        const escapeCsvField = (field: string | number) => {
+            const str = String(field);
+            if (str.includes(',')) {
+                return `"${str}"`;
+            }
+            return str;
+        };
+
+        return [
+            customer.id,
+            escapeCsvField(customer.name),
+            customer.baseBill,
+            status,
+            paymentDate
+        ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Laporan_Pembayaran_${monthName}_${year}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const renderCustomerCard = (customer: Customer) => {
+      const monthsToShow = [-1, 0, 1].map(offset => new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1));
+      return (
+          <div key={customer.id} className="bg-white dark:bg-gray-800 rounded-lg shadow">
+            <div className="p-4 flex justify-between items-start">
+              <div>
+                <p className="font-bold text-gray-800 dark:text-gray-100">{customer.name}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">ID: {customer.id} | {formatCurrency(customer.baseBill)}</p>
+              </div>
+              <div className="flex items-center space-x-2 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">
+                  {monthsToShow.map(date => {
+                      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                      const bill = customer.bills.find(b => b.paymentMonth === monthStr);
+                      const isPaid = bill?.status === 'LUNAS';
+                      return (
+                          <div key={monthStr} className="flex flex-col items-center w-12">
+                              <span>{date.toLocaleDateString('id-ID', { month: 'short' })}</span>
+                              <button onClick={() => bill && handleToggleBillStatus(customer.id, monthStr)} className="mt-1" disabled={!bill}>
+                                  {isPaid 
+                                    ? <CheckCircleIcon className="h-7 w-7 text-green-500" />
+                                    : <ExclamationCircleIcon className="h-7 w-7 text-red-500" />
+                                  }
+                              </button>
+                          </div>
+                      );
+                  })}
+                  <div className="flex self-center pl-2">
+                    <button onClick={() => handleOpenModal(customer)} className="text-blue-500 hover:text-blue-700 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                       <PencilIcon className="h-5 w-5"/>
+                    </button>
+                     <button onClick={() => setCustomerToDelete(customer)} className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                       <TrashIcon className="h-5 w-5"/>
+                    </button>
+                  </div>
+              </div>
+            </div>
+          </div>
+      );
+  };
+
+  return (
+    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans">
+      <header className="bg-yellow-400 p-4 shadow-md text-white sticky top-0 z-10">
+        <div className="container mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">MINUL.NET</h1>
+            <p className="text-sm opacity-90">Dashboard Pembayaran</p>
+          </div>
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <button onClick={toggleTheme} className="p-1 rounded-full hover:bg-yellow-500 transition-colors" aria-label="Toggle Dark Mode">
+              {theme === 'dark' ? <SunIcon className="h-7 w-7" /> : <MoonIcon className="h-7 w-7" />}
+            </button>
+            <UsersIcon className="h-7 w-7" />
+            <button onClick={handleExportCSV} className="p-1 rounded-full hover:bg-yellow-500 transition-colors" aria-label="Export to CSV">
+                <DocumentCsvIcon className="h-7 w-7" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto p-4 pb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                <p className="text-sm text-gray-500 dark:text-gray-400">TOTAL LUNAS</p>
+                <p className="text-2xl font-bold text-green-500">{formatCurrency(monthlyStats.totalLunas)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{monthlyStats.pelangganLunas} pelanggan</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                <p className="text-sm text-gray-500 dark:text-gray-400">TOTAL TERUTANG</p>
+                <p className="text-2xl font-bold text-red-500">{formatCurrency(monthlyStats.totalTerutang)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{monthlyStats.pelangganTerutang} pelanggan</p>
+            </div>
+        </div>
+
+        <div className="relative mb-4">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+              <SearchIcon className="h-5 w-5 text-gray-400" />
+            </span>
+            <input
+              type="text"
+              placeholder="Cari ID atau Nama..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border-transparent rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-800 dark:text-white"
+            />
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-lg shadow mb-4 text-gray-700 dark:text-gray-200">
+            <div className="flex items-center space-x-4 mb-2 md:mb-0">
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="group" className="text-sm font-medium">Kelompokkan:</label>
+                    <select 
+                        id="group"
+                        value={groupingKey}
+                        onChange={(e) => setGroupingKey(e.target.value as GroupingKey)}
+                        className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-md py-1 px-2 focus:ring-2 focus:ring-yellow-500 text-sm"
+                    >
+                        <option value="none">Tanpa Grup</option>
+                        <option value="dueDateDay">Jatuh Tempo</option>
+                    </select>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="sort" className="text-sm font-medium">Urutkan:</label>
+                    <select 
+                        id="sort"
+                        value={sortConfig.key}
+                        onChange={(e) => handleSortKeyChange(e.target.value as SortKey)}
+                        className="bg-gray-100 dark:bg-gray-700 border-transparent rounded-md py-1 px-2 focus:ring-2 focus:ring-yellow-500 text-sm"
+                    >
+                        <option value="name">Nama</option>
+                        <option value="id">ID</option>
+                        <option value="baseBill">Tagihan</option>
+                    </select>
+                    <button onClick={toggleSortDirection} className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <ArrowsUpDownIcon />
+                    </button>
+                </div>
+            </div>
+            <div className="flex items-center font-semibold">
+                <button onClick={() => handleMonthChange(-1)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><ChevronLeftIcon /></button>
+                <span className="w-40 text-center text-lg">{monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}</span>
+                <button onClick={() => handleMonthChange(1)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"><ChevronRightIcon /></button>
+            </div>
+        </div>
+
+        <div className="space-y-3">
+          {groupingKey === 'none' 
+            ? sortedAndFilteredCustomers.map(customer => renderCustomerCard(customer))
+            : Object.entries(
+                sortedAndFilteredCustomers.reduce((acc, customer) => {
+                  // FIX: Explicitly use a string key to prevent type inference issues with the accumulator.
+                  const key = String(customer.dueDateDay);
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(customer);
+                  return acc;
+                }, {} as Record<string, Customer[]>)
+              )
+              .sort(([a], [b]) => Number(a) - Number(b))
+              // FIX: Add explicit types for the destructured parameters to fix a type inference issue
+              // where `customersInGroup` was being inferred as `unknown`.
+              .map(([dueDate, customersInGroup]: [string, Customer[]]) => (
+                <div key={`group-${dueDate}`}>
+                  <h3 className="sticky top-[88px] z-[5] bg-gray-200/90 dark:bg-gray-700/90 backdrop-blur-sm p-2 rounded-md font-semibold text-gray-800 dark:text-gray-100 my-2">
+                    Jatuh Tempo Tanggal {dueDate}
+                  </h3>
+                  <div className="space-y-3">
+                    {customersInGroup.map(customer => renderCustomerCard(customer))}
+                  </div>
+                </div>
+              ))
+          }
+        </div>
+      </main>
+
+      <button
+        onClick={() => handleOpenModal()}
+        className="fixed bottom-6 right-6 flex items-center justify-center px-5 py-3 bg-green-500 text-white font-semibold rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
+      >
+        <UserPlusIcon className="h-6 w-6" />
+        <span className="ml-2 hidden sm:inline">Tambah Pelanggan Baru</span>
+      </button>
+
+      <AddEditCustomerModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleFormSubmit}
+        customerToEdit={editingCustomer}
+      />
+
+      <ConfirmationModal
+        isOpen={!!customerToDelete}
+        onClose={() => setCustomerToDelete(null)}
+        onConfirm={handleDeleteCustomer}
+        title="Hapus Pelanggan"
+      >
+        <p>Apakah Anda yakin ingin menghapus pelanggan <strong className="font-semibold text-gray-800 dark:text-gray-100">{customerToDelete?.name}</strong>? Tindakan ini tidak dapat diurungkan.</p>
+      </ConfirmationModal>
+    </div>
+  );
+};
+
+export default App;

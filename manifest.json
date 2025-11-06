@@ -1,0 +1,17 @@
+{
+  "short_name": "MinulNet",
+  "name": "MINUL.NET - Dashboard Pembayaran",
+  "description": "Aplikasi untuk mengelola dan melacak pembayaran langganan Wi-Fi bulanan pelanggan.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#FBBF24",
+  "background_color": "#F3F4F6"
+}
